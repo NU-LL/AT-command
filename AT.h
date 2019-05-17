@@ -10,8 +10,13 @@ typedef enum
     ATMODE,
 }enumAtMode;
 
+void UsartSendCmd(unsigned char* dat);
+
 void GetUsartData(unsigned char dat,unsigned char isstop);
 unsigned char ATSend(unsigned char *cmd,unsigned char *ack,unsigned short waittime);
+
+unsigned char *GetRevDataAddr(void);
+void ClearRevData(void);
 
 #endif
 

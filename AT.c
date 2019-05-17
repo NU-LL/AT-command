@@ -12,7 +12,7 @@ static void ATDelay(void)
 }
 
 //串口发送AT命令数据
-static void UsartSendCmd(unsigned char* dat)
+void UsartSendCmd(unsigned char* dat)
 {
     if(dat != NULL)
     {
@@ -20,23 +20,44 @@ static void UsartSendCmd(unsigned char* dat)
     }
 }
 //==================================================待移植函数==================================================
-
+//获取串口数据缓存地址
+unsigned char *GetRevDataAddr(void)
+{
+  return RevData;
+}
+//清除缓存
+//实际上为添加结束符
+void ClearRevData(void)
+{
+	RevData[0] = 0;//添加结束符
+	GetUsartData(0,1);
+}
 //获取串口数据
 //注意串口接收完毕后发送 GetUsartData(0,1)
+//为解决连续发送AT指令时，程序来不及自动发送 GetUsartData(0,1)，可以通过在发送AT指令后增加 GetUsartData(0,1) 来手动清除缓存
 void GetUsartData(unsigned char dat,unsigned char isstop)
 {
     static int idx = 0;
     if(isstop)
     {
-        RevData[idx+1] = 0;//结束符
         UsartMode = ATMODE;
         idx = 0;
     }
     else
     {
-        RevData[idx] = dat;
-        UsartMode = REVDATA;
-        idx++;
+		//缓存的最后一个必须为结束符 此时不再接收数据
+		if(idx >= COUNT_REVDATA-1)
+		{
+			RevData[idx] = 0;//添加结束符
+			UsartMode = REVDATA;
+		}
+		else
+		{
+			RevData[idx] = dat;
+			RevData[idx+1] = 0;//添加结束符
+			UsartMode = REVDATA;
+			idx++;
+		}
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////// 
